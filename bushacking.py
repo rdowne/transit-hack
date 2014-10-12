@@ -3,6 +3,7 @@ import bs4
 import json
 import shapely
 import shapely.geometry
+from operator import attrgetter
 
 with open('example.sfmta.geo.json') as jsonin:
     geomess = json.loads( jsonin.read() )
@@ -40,9 +41,28 @@ for root, dirs, files in os.walk('./sf-muni'):
             except Exception as e:
                 print( "Route %s does not exist: %s" % (routeNo, str(e)) )
         
-for fh in route_filehandles:
+for fh in route_filehandles.values():
     fh.close()
     
 for k in routes.keys():
     with open('./routes/%s.json' % k) as linesin:
         samples = [ json.loads(l) for l in linesin.readlines() ]
+
+    if len(samples)==0:
+        continue
+
+    tree = {}
+    for s in samples:
+        busid = s.pop('id')
+        s['time'] = int(s['time'])
+        if tree.get( busid ) is None:
+            tree[busid] = []
+            
+        tree[busid].append( s )
+            
+        for i in tree.keys():
+            samples = sorted(tree[i], key=lambda row: row['time'])
+            tree[i] = samples
+
+    with open('./routes/%s.json' % k, 'w') as treeout:
+        treeout.write( json.dumps( tree ) )
