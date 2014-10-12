@@ -60,9 +60,8 @@ for k in routes.keys():
             
         tree[busid].append( s )
             
-        for i in tree.keys():
-            samples = sorted(tree[i], key=lambda row: row['time'])
-            tree[i] = samples
+    for i in tree.keys():
+        tree[i] = sorted(tree[i], key=lambda row: row['time'])
 
     with open('./routes/%s.json' % k, 'w') as treeout:
         treeout.write( json.dumps( tree ) )
